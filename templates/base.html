@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Blog</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/foundation/6.2.4-rc2/foundation.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+<div class="container">
+    <div class="row small-up-1">
+        <a href="/blog"><h1 class="align-center header">My Blog</h1></a>
+    </div>
+    <div class="row small-up-1">
+        <div class="column buttons">
+            {% if user %}
+                <a class="float-right button" href="/logout">Logout</a>
+                <h6 class="float-left button">Welcome, <span
+                        style="font-weight: bold">{{ user.name }}!</span>
+                </h6> {% else %}
+                <a class="button" href="/login">
+                    <button>Login</button>
+                </a>
+                <a class="float-right button" href="/signup">
+                    <button>Create Sign Up</button>
+                </a> {% endif %}
+        </div>
+    </div>
+    {% block content %}
+
+    {% endblock %}
+</div>
+</body>
+
+</html>

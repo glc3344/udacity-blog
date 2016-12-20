@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2 class="align-center">Signup</h2>
+    <form method="post">
+        <div class="row">
+            <div class="small-2 columns">Username:</div>
+            <div class="small-10 columns">
+                <input type="text" name="username" value="{{ username }}">
+                <div class="error align-center">{{ error_username }}</div>
+                <br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-2 columns">Password:</div>
+            <div class="small-10 columns">
+                <input type="password" name="password" value="">
+                <div class="error align-center">{{ error_password }}</div>
+                <br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-2 columns">Confirm Password:</div>
+            <div class="small-10 columns">
+                <input type="password" name="verify" value="">
+                <div class="error align-center">{{ error_verify }}</div>
+                <br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-2 columns">E-mail: (Optional)</div>
+            <div class="small-10 columns">
+                <input type="text" name="email" value="{{ email }}">
+                <div class="error align-center">{{ error_email }}</div>
+                <br>
+            </div>
+        </div>
+        <br>
+        <div class="column row">
+            <input type="submit" class="button expanded">
+        </div>
+
+    </form>
+
+{% endblock %}

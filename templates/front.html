@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% if user %}
+        <a href="/blog/newpost">
+            <button class="float-right">+ Create New Post</button>
+        </a>
+    {% endif %}
+
+    {% for p in posts %}
+        {% if user %} {{ p.render(user.key().id()) | safe }}
+            <br>
+        {% else %} {{ p.render(None) | safe }}
+        {% endif %}
+    {% endfor %}
+
+{% endblock %}

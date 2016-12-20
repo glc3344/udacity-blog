@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h5 class="align-left">Edit Comment</h5>
+    <form method="post">
+        <label>
+            <textarea type="text" name="content" rows='3'>{{ content }}</textarea>
+        </label>
+        <p>{{ error }}</p>
+        <input type="submit" class="button">
+
+    </form>
+{% endblock %}

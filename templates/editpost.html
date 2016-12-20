@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h5 class="align-center">Edit Your Post</h5>
+    <form method="post">
+        <label>
+            <h6>Title:</h6>
+            <input autofocus type="text" name="subject" value="{{ subject }}">
+        </label>
+        <label>
+            <h6>Content:</h6>
+            <textarea type="text" name="content" rows='10'>{{ content }}</textarea>
+        </label>
+        <input type="submit" class="button">
+        <div class="error align-center">{{ error }}</div>
+        <a class="alert button" href="/blog/{{ post_id }}">BACK</a>
+
+    </form>
+{% endblock %}

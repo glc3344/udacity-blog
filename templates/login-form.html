@@ -1,0 +1,24 @@
+{% extends "base.html" %} {% block content %}
+
+    <h2 class="align-center">Login</h2>
+    <form method="post">
+        <div class="row">
+            <div class="small-2 columns">Username:</div>
+            <div class="small-10 columns">
+                <input type="text" name="username" value="{{ username }}">
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-2 columns">Password:</div>
+            <div class="small-10 columns">
+                <input type="password" name="password" value="">
+            </div>
+        </div>
+        <br>
+        <div class="column row">
+            <input type="submit" class="button expanded">
+        </div>
+        <div class="error align-center">{{ error }}</div>
+    </form>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if user %}
+        {{ post.render(user.key().id()) | safe }}
+        <br><br>
+    {% else %}
+        {{ post.render(None) | safe }}
+    {% endif %}
+
+    {% if user and user.key().id() == post.user_id %}
+        <a href="/delete/{{ post.key().id() }}/{{ post.user_id }}">Delete Your Post | </a>
+        <a href="/blog/{{ post.key().id() }}/edit">Edit Your Post</a>
+    {% elif user %}
+        <a href="/blog/{{ post.key().id() }}/like">Like This Post | </a>
+        <a href="/blog/{{ post.key().id() }}/unlike">Remove Your Like</a>
+    {% endif %}
+
+
+    <br>
+    <hr>
+    {% for c in comments %}
+        <span style="font-weight: bold">{{ c.content }}</span>
+        <br>
+        {% if user %}
+            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/deletecomment"> Delete | </a>
+            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/editcomment">Edit</a>
+        {% endif %}
+
+        <br><br>
+    {% endfor %}
+
+    {% if user %}
+        <a href="/blog/{{ post.key().id() }}/{{ user.key().id() }}/addcomment">Add Comment</a>
+    {% endif %}
+
+{% endblock %}

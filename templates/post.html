@@ -1,0 +1,15 @@
+<a href="/blog/{{ p.key().id() }}"><h4>{{ p.subject }}</h4></a>
+
+<div class="row small-up-1">
+    <div class="column post">
+        <p>{{ p._render_text | safe }}</p>
+
+
+        <i>Posted: {{ p.created.strftime("%b %d, %Y") }}</i>
+        <br>
+        <i>Author:</i> <span style="font-weight: bold">{{ author }}</span>
+        <br>
+        <i>Likes: {{ p.likes }}</i>
+    </div>
+</div>
+<br>
