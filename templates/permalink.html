@@ -12,8 +12,8 @@
         <a href="/delete/{{ post.key().id() }}/{{ post.user_id }}">Delete Your Post | </a>
         <a href="/blog/{{ post.key().id() }}/edit">Edit Your Post</a>
     {% elif user %}
-        <a href="/blog/{{ post.key().id() }}/like">Like This Post | </a>
-        <a href="/blog/{{ post.key().id() }}/unlike">Remove Your Like</a>
+        <a class="button success" href="/blog/{{ post.key().id() }}/like">Like This Post</a>
+        <a class="button alert" href="/blog/{{ post.key().id() }}/unlike">Remove Your Like</a>
     {% endif %}
 
 
