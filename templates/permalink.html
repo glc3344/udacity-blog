@@ -9,29 +9,32 @@
     {% endif %}
 
     {% if user and user.key().id() == post.user_id %}
-        <a href="/delete/{{ post.key().id() }}/{{ post.user_id }}">Delete Your Post | </a>
-        <a href="/blog/{{ post.key().id() }}/edit">Edit Your Post</a>
+        <a class="button" href="/blog/{{ post.key().id() }}/edit"><i class="fa fa-pencil" aria-hidden="true"></i> Edit Your Post</a>
+        <a class="button alert" href="/delete/{{ post.key().id() }}/{{ post.user_id }}"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete Your Post</a>
     {% elif user %}
-        <a class="button success" href="/blog/{{ post.key().id() }}/like">Like This Post</a>
-        <a class="button alert" href="/blog/{{ post.key().id() }}/unlike">Remove Your Like</a>
+        <a class="button" href="/blog/{{ post.key().id() }}/like"><i class="fa fa-heart-o" aria-hidden="true"></i> Like This Post</a>
+        <a class="button alert" href="/blog/{{ post.key().id() }}/unlike"><i class="fa fa-thumbs-o-down" aria-hidden="true"></i> Remove Like</a>
     {% endif %}
 
 
     <br>
     <hr>
     {% for c in comments %}
-        <span style="font-weight: bold">{{ c.content }}</span>
+       <div class="callout secondary"> <span style="font-weight: bold">{{ c.content }}</span>
         <br>
-        {% if user %}
-            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/deletecomment"> Delete | </a>
-            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/editcomment">Edit</a>
+        <i> -{{ c.getUserName() }}</i>
+        </div>
+        {% if user.name == c.getUserName() %}
+            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/editcomment" class="label primary">Edit</a>
+            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/deletecomment" class="label alert">Delete</a>
         {% endif %}
 
-        <br><br>
+        <br>
     {% endfor %}
 
+    <br>
     {% if user %}
-        <a href="/blog/{{ post.key().id() }}/{{ user.key().id() }}/addcomment">Add Comment</a>
+        <a href="/blog/{{ post.key().id() }}/{{ user.key().id() }}/addcomment">+ Add Comment</a>
     {% endif %}
 
 {% endblock %}

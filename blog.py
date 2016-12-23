@@ -257,16 +257,16 @@ class NewPost(BlogHandler):
 
 class EditPost(BlogHandler):
     def get(self, post_id):
-        username = self.isLoggedIn()
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
-        if username:
-            if post.user_id == self.user.key().id():
-                self.render("editpost.html", isLoggedIn = True, subject=post.subject, content=post.content)
+            username = self.isLoggedIn()
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            if username and post:
+                if post.user_id == self.user.key().id():
+                    self.render("editpost.html", isLoggedIn = True, subject=post.subject, content=post.content)
+                else:
+                    self.render("error.html", error = "You do not have required permission to edit this post!")
             else:
-                self.render("error.html", error = "You do not have required permission to edit this post!")
-        else:
-            self.redirect("/blog/signup")
+                self.redirect("/blog/signup")
 
     def post(self, post_id):
         if not self.user:
@@ -275,9 +275,9 @@ class EditPost(BlogHandler):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
-        if subject and content:
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if subject and content and post:
             post.subject = subject
             post.content = content
             post.put()
@@ -292,18 +292,18 @@ class EditPost(BlogHandler):
 
 class Delete(BlogHandler):
     def get(self, post_id, post_user_id):
-        username = self.isLoggedIn()
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
-        if username:
-            if post.user_id == self.user.key().id():
-                post.delete()
-                self.redirect('/blog')
+            username = self.isLoggedIn()
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            if username and post:
+                if post.user_id == self.user.key().id():
+                    post.delete()
+                    self.redirect('/blog?=postdoenotexist')
+                else:
+                    self.render("error.html", error="You do not have required permission to delete this post!")
             else:
-                self.render("error.html", error="You do not have required permission to delete this post!")
-        else:
-            self.render("error.html",
-                        error="You must be logged in to delete this post!")
+                self.render("error.html",
+                            error="You must be logged in to delete this post!")
 
 
 #### Allows logged in users to like others posts -
@@ -314,7 +314,7 @@ class LikePost(BlogHandler):
         username = self.isLoggedIn()
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        if username:
+        if username and post:
             if self.user and self.user.key().id() == post.user_id:
                 self.render("error.html", error="You cannot like your own post!")
             else:
@@ -342,7 +342,7 @@ class UnlikePost(BlogHandler):
         username = self.isLoggedIn()
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        if username:
+        if username and post:
             if self.user and self.user.key().id() == post.user_id:
                 self.render("error.html",
                             error="You cannot dislike your own post!")
@@ -368,7 +368,7 @@ class AddComment(BlogHandler):
         username = self.isLoggedIn()
         post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(post_key)
-        if username:
+        if username and post:
             self.render("addcomment.html", isLoggedIn=True, post=post)
         else:
             self.render("error.html", error="You have to be logged in to add a comment.")
@@ -376,11 +376,11 @@ class AddComment(BlogHandler):
     def post(self, post_id, user_id):
         content = self.request.get("content")
         username = self.isLoggedIn()
-        # post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        # post = db.get(post_key)
+        post = db.get(post_key)
         if content:
-            if username:
+            if username and post:
                 comment = Comment(parent=key, user_id=int(user_id), content=content)
                 comment.put()
                 self.redirect('/blog/' + post_id)
@@ -400,7 +400,8 @@ class DeleteComment(BlogHandler):
         post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
         comment = db.get(key)
-        if username:
+        post = db.get(post_key)
+        if username and post:
             if self.user and self.user.key().id() == int(post_user_id):
                 comment.delete()
                 self.redirect('/blog/' + post_id)
@@ -419,7 +420,7 @@ class EditComment(BlogHandler):
         key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
         comment = db.get(key)
         post = db.get(post_key)
-        if username:
+        if username and post:
             if self.user and self.user.key().id() == int(post_user_id):
                 self.render("editcomment.html", isLoggedIn = True, post=post, content=comment.content)
             else:
@@ -433,8 +434,9 @@ class EditComment(BlogHandler):
         post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
         comment = db.get(key)
+        post = db.get(post_key)
         if content:
-            if username:
+            if username and post:
                 if self.user and self.user.key().id() == int(post_user_id):
                      comment.content = content
                      comment.put()

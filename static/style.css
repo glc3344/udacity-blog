@@ -24,6 +24,7 @@ body {
 
 .header {
     font-weight: bold;
+    font-family: 'Syncopate', sans-serif;
 }
 
 .post {
@@ -62,9 +63,26 @@ div.column.buttons {
     background-color: #d83434;
     border-radius: 10px;
     text-align: center;
+    width: 50%;
+    margin: 10px auto;
+
+
 }
 
 h4 {
     margin-bottom: 0;
     padding-left: 5px;
+}
+
+.label {
+    margin-top: 15px;
+    border-radius: 10px;
+}
+
+.callout.secondary{
+    border: none;
+    border-radius: 10px;
+    width: 40%;
+    margin-top: 15px;
+    margin-bottom: 0;
 }
