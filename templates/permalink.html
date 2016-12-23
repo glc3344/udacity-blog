@@ -25,8 +25,8 @@
         <i> -{{ c.getUserName() }}</i>
         </div>
         {% if user.name == c.getUserName() %}
-            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/editcomment" class="label primary">Edit</a>
-            <a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/deletecomment" class="label alert">Delete</a>
+            <span data-tooltip aria-haspopup="true" class="has-tip" title="Edit Comment"><a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/editcomment" class="button tiny"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a></span>
+            <span data-tooltip aria-haspopup="true" class="has-tip" title="Delete Comment"><a href="/blog/{{ post.key().id() }}/{{ c.user_id }}/{{ c.key().id() }}/deletecomment" class="button tiny alert"><i class="fa fa-trash-o fa-lg" aria-hidden="true"></i></a></span>
         {% endif %}
 
         <br>

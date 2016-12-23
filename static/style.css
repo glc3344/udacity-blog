@@ -84,5 +84,13 @@ h4 {
     border-radius: 10px;
     width: 40%;
     margin-top: 15px;
-    margin-bottom: 0;
+    margin-bottom: 5px;
+}
+
+input[type=text],[type=password]{
+    border-radius: 10px;
+}
+
+textarea[rows] {
+    border-radius: 10px;
 }
