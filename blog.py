@@ -1,31 +1,12 @@
-import hmac
-import random
-import re
-import string
-
-
 import webapp2
 from google.appengine.ext import db
 
 import myHelper
+from comment import Comment
 from like import Like
 from post import Post
-from user import User
-from comment import Comment
-
-## Random Secret Key
-secret = ''.join(
-    [random.choice(string.ascii_letters + string.digits) for n in xrange(32)])
-
-
-def make_secure_val(val):
-    return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
-
-
-def check_secure_val(secure_val):
-    val = secure_val.split('|')[0]
-    if secure_val == make_secure_val(val):
-        return val
+from user import User, check_secure_val, make_secure_val, valid_username, \
+    valid_password, valid_email
 
 
 #### Basic handler for blog. Handles basic and frequently used functions
@@ -71,6 +52,8 @@ class BlogHandler(webapp2.RequestHandler):
         self.user = uid and User.by_id(int(uid))
 
 
+## Define blog key
+
 def blog_key(name='default'):
     return db.Key.from_path('blogs', name)
 
@@ -101,29 +84,6 @@ class PostPage(BlogHandler):
             return
 
         self.render("permalink.html", post=post, comments=comments)
-
-
-#### Validation for username, password and email
-
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-
-
-def valid_username(username):
-    return username and USER_RE.match(username)
-
-
-PASS_RE = re.compile(r"^.{3,20}$")
-
-
-def valid_password(password):
-    return password and PASS_RE.match(password)
-
-
-EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
-
-
-def valid_email(email):
-    return not email or EMAIL_RE.match(email)
 
 
 #### Handles the signup page, shows error if the fields
@@ -178,7 +138,6 @@ class Register(Signup):
         else:
             u = User.register(self.username, self.password, self.email)
             u.put()
-
             self.login(u)
             self.redirect('/blog')
 
@@ -187,7 +146,8 @@ class Register(Signup):
 
 class Login(BlogHandler):
     def get(self):
-        if self.isLoggedIn():
+        username = self.isLoggedIn()
+        if username:
             self.render("error.html", error="You are already logged in!")
         else:
             self.render("login-form.html")
@@ -195,7 +155,6 @@ class Login(BlogHandler):
     def post(self):
         username = self.request.get('username')
         password = self.request.get('password')
-
         u = User.login(username, password)
         if u:
             self.login(u)
@@ -204,15 +163,18 @@ class Login(BlogHandler):
             msg = 'Invalid Username or Password'
             self.render('login-form.html', error=msg)
 
+
 #### Log's out user
 
 class Logout(BlogHandler):
     def get(self):
-        if self.isLoggedIn():
+        username = self.isLoggedIn()
+        if username:
             self.logout()
             self.redirect('/blog')
         else:
-            self.render("error.html", error = "You have to be logged in to log out!")
+            self.render("error.html",
+                        error="You have to be logged in to log out!")
 
 
 #### Welcome page after a user successfully logs in
@@ -221,7 +183,7 @@ class Welcome(BlogHandler):
     def get(self):
         username = self.isLoggedIn()
         if username:
-            self.render('welcome.html', isLoggedIn = True, username=username)
+            self.render('welcome.html', isLoggedIn=True, username=username)
         else:
             self.redirect('/blog/signup')
 
@@ -230,10 +192,12 @@ class Welcome(BlogHandler):
 
 class NewPost(BlogHandler):
     def get(self):
-        if self.isLoggedIn():
+        username = self.isLoggedIn()
+        if username:
             self.render("newpost.html", isLoggedIn=True)
         else:
-            self.render("error.html", error = "You must be logged in to create a post.")
+            self.render("error.html",
+                        error="You must be logged in to create a post.")
 
     def post(self):
         subject = self.request.get("subject")
@@ -246,10 +210,11 @@ class NewPost(BlogHandler):
                 p.put()
                 self.redirect('/blog/%s' % str(p.key().id()))
             else:
-                self.redirect('/blog/signup')
+                self.redirect('/login')
         else:
             error = "Post must have 'Title' and 'Content'."
-            self.render("newpost.html", isLoggedIn=True, subject=subject, content=content, error=error)
+            self.render("newpost.html", isLoggedIn=True, subject=subject,
+                        content=content, error=error)
 
 
 #### Allows the user of the post to edit page.
@@ -257,34 +222,40 @@ class NewPost(BlogHandler):
 
 class EditPost(BlogHandler):
     def get(self, post_id):
-            username = self.isLoggedIn()
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
-            if username and post:
-                if post.user_id == self.user.key().id():
-                    self.render("editpost.html", isLoggedIn = True, subject=post.subject, content=post.content)
-                else:
-                    self.render("error.html", error = "You do not have required permission to edit this post!")
-            else:
-                self.redirect("/blog/signup")
-
-    def post(self, post_id):
-        if not self.user:
-            self.redirect('/blog')
-
-        subject = self.request.get('subject')
-        content = self.request.get('content')
-
+        username = self.isLoggedIn()
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        if subject and content and post:
-            post.subject = subject
-            post.content = content
-            post.put()
-            self.redirect('/blog/%s' % post_id)
+        if username and post:
+            if post.user_id == self.user.key().id():
+                self.render("editpost.html", isLoggedIn=True,
+                            subject=post.subject, content=post.content)
+            else:
+                self.render("error.html",
+                            error="You do not have required permission to edit this post!")
+        else:
+            self.redirect("/login")
+
+    def post(self, post_id):
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+        username = self.isLoggedIn()
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if subject and content:
+            if username:
+                if post.user_id == self.user.key().id():
+                    post.subject = subject
+                    post.content = content
+                    post.put()
+                    self.redirect('/blog/' + post_id)
+                else:
+                    self.render("error.html",
+                                error="You do not have the required permission to edit this post.")
+            else:
+                self.redirect("/login")
         else:
             error = "Post must have subject and content!"
-            self.render("editpost.html", subject=subject,
+            self.render("editpost.html", isLoggedIn=True, subject=subject,
                         content=content, error=error)
 
 
@@ -292,18 +263,18 @@ class EditPost(BlogHandler):
 
 class Delete(BlogHandler):
     def get(self, post_id, post_user_id):
-            username = self.isLoggedIn()
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
-            if username and post:
-                if post.user_id == self.user.key().id():
-                    post.delete()
-                    self.redirect('/blog?=postdoenotexist')
-                else:
-                    self.render("error.html", error="You do not have required permission to delete this post!")
+        username = self.isLoggedIn()
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if username and post:
+            if post.user_id == self.user.key().id():
+                post.delete()
+                self.redirect('/blog?=postdoenotexist')
             else:
-                self.render("error.html",
-                            error="You must be logged in to delete this post!")
+                self.redirect("/login")
+        else:
+            self.render("error.html",
+                        error="You must be logged in to delete this post!")
 
 
 #### Allows logged in users to like others posts -
@@ -316,7 +287,8 @@ class LikePost(BlogHandler):
         post = db.get(key)
         if username and post:
             if self.user and self.user.key().id() == post.user_id:
-                self.render("error.html", error="You cannot like your own post!")
+                self.render("error.html",
+                            error="You cannot like your own post!")
             else:
                 l = Like.all().filter('user_id =', self.user.key().id()
                                       ).filter('post_id =',
@@ -331,7 +303,8 @@ class LikePost(BlogHandler):
                     post.put()
                     self.redirect('/blog/' + str(post.key().id()))
         else:
-            self.render("error.html", error="You must be logged in to 'like' a post.")
+            self.render("error.html",
+                        error="You must be logged in to 'like' a post.")
 
 
 #### Allows logged in users to remove their like
@@ -348,7 +321,8 @@ class UnlikePost(BlogHandler):
                             error="You cannot dislike your own post!")
             else:
                 l = Like.all().filter('user_id =', self.user.key().id()
-                                      ).filter('post_id =', post.key().id()).get()
+                                      ).filter('post_id =',
+                                               post.key().id()).get()
                 if l:
                     l.delete()
                     post.likes -= 1
@@ -371,7 +345,8 @@ class AddComment(BlogHandler):
         if username and post:
             self.render("addcomment.html", isLoggedIn=True, post=post)
         else:
-            self.render("error.html", error="You have to be logged in to add a comment.")
+            self.render("error.html",
+                        error="You have to be logged in to add a comment.")
 
     def post(self, post_id, user_id):
         content = self.request.get("content")
@@ -381,11 +356,12 @@ class AddComment(BlogHandler):
         post = db.get(post_key)
         if content:
             if username and post:
-                comment = Comment(parent=key, user_id=int(user_id), content=content)
+                comment = Comment(parent=key, user_id=int(user_id),
+                                  content=content)
                 comment.put()
                 self.redirect('/blog/' + post_id)
             else:
-                self.render("error.html", error="You must be logged in to add a comment.")
+                self.redirect("/login")
         else:
             error = "Comment must have content!"
             self.render("addcomment.html",
@@ -406,9 +382,11 @@ class DeleteComment(BlogHandler):
                 comment.delete()
                 self.redirect('/blog/' + post_id)
             else:
-                self.render("error.html", error="You do not have the required permission to delete this comment.")
+                self.render("error.html",
+                            error="You do not have the required permission to delete this comment.")
         else:
-            self.render("error.html", error="You must sign in to delete a comment.")
+            self.render("error.html",
+                        error="You must sign in to delete a comment.")
 
 
 #### Allows logged in users to edit their comment on others posts
@@ -422,11 +400,14 @@ class EditComment(BlogHandler):
         post = db.get(post_key)
         if username and post and comment:
             if self.user and self.user.key().id() == int(post_user_id):
-                self.render("editcomment.html", isLoggedIn = True, post=post, content=comment.content)
+                self.render("editcomment.html", isLoggedIn=True, post=post,
+                            content=comment.content)
             else:
-                self.render("error.html", error="You cannot edit someone else's comment!")
+                self.render("error.html",
+                            error="You cannot edit someone else's comment!")
         else:
-            self.render("error.html", error="You must be logged in to edit a comment.")
+            self.render("error.html",
+                        error="You must be logged in to edit a comment.")
 
     def post(self, post_id, post_user_id, comment_id):
         username = self.isLoggedIn()
@@ -438,13 +419,15 @@ class EditComment(BlogHandler):
         if content:
             if username and post and comment:
                 if self.user and self.user.key().id() == int(post_user_id):
-                     comment.content = content
-                     comment.put()
-                     self.redirect('/blog/' + post_id)
+                    comment.content = content
+                    comment.put()
+                    self.redirect('/blog/' + post_id)
                 else:
-                    self.render("error.html", error="You do not have permission to edit someone's comment!")
+                    self.render("error.html",
+                                error="You do not have permission to edit someone's comment!")
             else:
-                self.render("error.html", error="You must sign in to edit a comment")
+                self.render("error.html",
+                            error="You must sign in to edit a comment")
         else:
             error = "Edited comment must have content."
             self.render("editcomment.html", content=content, error=error)

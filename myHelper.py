@@ -1,5 +1,6 @@
 import os
 import jinja2
+from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
@@ -9,3 +10,4 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
 def jinja_render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
+
