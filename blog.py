@@ -401,14 +401,14 @@ class DeleteComment(BlogHandler):
         key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
         comment = db.get(key)
         post = db.get(post_key)
-        if username and post:
+        if username and post and comment:
             if self.user and self.user.key().id() == int(post_user_id):
                 comment.delete()
                 self.redirect('/blog/' + post_id)
             else:
                 self.render("error.html", error="You do not have the required permission to delete this comment.")
         else:
-            self.render("error.html", error="Please sign in to delete a comment.")
+            self.render("error.html", error="You must sign in to delete a comment.")
 
 
 #### Allows logged in users to edit their comment on others posts
@@ -420,7 +420,7 @@ class EditComment(BlogHandler):
         key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
         comment = db.get(key)
         post = db.get(post_key)
-        if username and post:
+        if username and post and comment:
             if self.user and self.user.key().id() == int(post_user_id):
                 self.render("editcomment.html", isLoggedIn = True, post=post, content=comment.content)
             else:
@@ -436,7 +436,7 @@ class EditComment(BlogHandler):
         comment = db.get(key)
         post = db.get(post_key)
         if content:
-            if username and post:
+            if username and post and comment:
                 if self.user and self.user.key().id() == int(post_user_id):
                      comment.content = content
                      comment.put()
